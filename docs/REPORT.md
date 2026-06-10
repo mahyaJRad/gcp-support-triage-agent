@@ -1,6 +1,6 @@
 # Architecture & Agent Design Report
 ## Intelligent Data Extraction & Summarization with Agentic Workflows on GCP
-**Prototype:** Support-Triage Agent · **Author:** Mahya Jodeyri Rad · **Date:** 2026-06-10 · **Scope:** ~48-hour prototype
+**Prototype:** Support-Triage Agent, **Date:** 2026-06-10
 
 ---
 
