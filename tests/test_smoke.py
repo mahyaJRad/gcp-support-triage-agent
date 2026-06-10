@@ -1,5 +1,4 @@
 """Structure smoke tests - run WITHOUT GCP credentials (mock the clients).
-Lets a reviewer validate the scaffold without a project. `pytest -q`.
 """
 
 from support_triage.config import CONFIG
@@ -44,6 +43,23 @@ def test_retrieval_tokenizer():
     toks = _terms("BigQuery error: cannot query cross-region dataset!")
     assert "bigquery" in toks and "cross-region" in toks
     assert all(len(t) >= 2 for t in toks)  # no single-char noise
+
+
+def test_spacy_baseline_matches_nl_api_schema():
+    # the spaCy baseline must emit the SAME keys as the NL API path so the two
+    # extractors can be scored with the identical eval metric
+    from support_triage.extraction.baseline_spacy import extract_spacy
+
+    ents = extract_spacy("Google Cloud Storage upload fails in San Francisco.")
+    assert isinstance(ents, list) and ents, "expected at least one entity"
+    expected = {"name", "type", "salience", "entity_sentiment_score", "entity_sentiment_magnitude"}
+    for e in ents:
+        assert set(e) == expected
+        assert e["entity_sentiment_score"] is None  # small model has no sentiment
+    # salience is a normalised proxy: descending and summing to ~1
+    saliences = [e["salience"] for e in ents]
+    assert saliences == sorted(saliences, reverse=True)
+    assert abs(sum(saliences) - 1.0) < 0.01
 
 
 def test_agent_tools_have_descriptions():

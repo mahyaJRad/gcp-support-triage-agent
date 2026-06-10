@@ -1,11 +1,8 @@
-## Summary spot-check (Gemini-Flash judge, 1-5)
+## Extraction baseline comparison (entities vs Stack Overflow tags)
 
-Mean faithfulness **5.0/5**, mean usefulness **5.0/5** over 5 summaries.
+Micro-averaged precision/recall/F1 over 300 tickets, scored against each ticket's tags as a free gold standard (same documents for both).
 
-| Ticket | Summary | Faithful | Useful | Note |
-|--------|---------|:--------:|:------:|------|
-| [47993099](https://stackoverflow.com/q/47993099) | The user wants to upload a `StringIO` object directly to Google Cloud Storage, avoiding local file creation. They attempted to use `blob.upload_from_filename(buffer)` with their `StringIO` object but encountered a `TypeError: expected string or buffer`. Being new to Python, they are unsure why this method isn't working as expected. The resolution is unknown. | 5 | 5 | Accurate, concise, and captures all key problem details for triage. |
-| [47999146](https://stackoverflow.com/q/47999146) | A user wants to authenticate their GKE Kubernetes cluster with a third-party private Docker registry. They need to understand how to provide GKE with credentials to pull images for pods from this external repository. The resolution to this issue is currently unknown. | 5 | 5 | Accurate, concise, and clearly states the problem and unknown resolution. |
-| [48014237](https://stackoverflow.com/q/48014237) | The user is experiencing an issue with Firestore real-time updates in C# using `FirestoreClient.Listen`. The stream receives updates for a short period before closing unexpectedly. The user is seeking assistance, indicating the resolution is currently unknown. | 5 | 5 | Accurate, concise, and captures all key problem details for triage. |
-| [48015085](https://stackoverflow.com/q/48015085) | A user deployed a create-react-app build to Google Cloud Platform App Engine, but only the root URL works. Navigating to any other path, like `/anything`, results in a 'Not Found' error. The provided `app.yaml` configuration is included, and the resolution is currently unknown. | 5 | 5 | Accurate, concise, and highlights key details like app.yaml for quick triage. |
-| [48033628](https://stackoverflow.com/q/48033628) | A user is trying to upload images from a Node.js Firebase Cloud Function to Firebase Storage using the `@google-cloud/storage` library. They are confused by the `bucket.upload(filename, callback)` method, as it doesn't seem to accept file data directly. The user is asking for help on how to correctly upload image data, and the resolution is unknown. | 5 | 5 | Accurate, concise, and captures all key details for quick understanding. |
+| Extractor | Precision | Recall | F1 |
+|-----------|:---------:|:------:|:--:|
+| Cloud Natural Language API | 0.174 | 0.778 | 0.285 |
+| spaCy `en_core_web_sm` | 0.333 | 0.566 | 0.419 |

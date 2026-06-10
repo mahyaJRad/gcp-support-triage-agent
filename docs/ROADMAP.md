@@ -12,8 +12,8 @@ production version would add and how it would be operated.
   SQL query as fallback. Enables multi-hop queries such as "resolved tickets that
   share tags/entities, plus the users who resolved them."
 - **Richer extraction.** Entity-level (aspect) sentiment in addition to document
-  sentiment; an optional spaCy NER baseline emitting the same schema for a
-  side-by-side comparison.
+  sentiment. (A spaCy NER baseline emitting the same schema already ships for a
+  side-by-side comparison - see `make baseline`.)
 - **Cross-document synthesis.** Given several retrieved resolved tickets, produce
   one "known issue and likely fix" summary that cites every source id, with a
   prompt that refuses when evidence is weak rather than inventing a fix.

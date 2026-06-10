@@ -67,7 +67,8 @@ make eda           # corpus statistics (+ plots saved under notebooks/figures/)
 make notebook      # open notebooks/01_eda.ipynb in JupyterLab
 make extract       # NL API entity + sentiment extraction
 make summarize     # Gemini Flash summaries
-make eval          # entity/tag overlap metric + summary spot-check
+make baseline      # traditional-NLP baseline: spaCy NER vs NL API (no Gemini cost)
+make eval          # entity/tag overlap (NL API vs spaCy) + summary spot-check
 make run-agent     # launch the ADK agent locally (adk web)
 make test          # offline tests (no GCP credentials needed)
 ```
