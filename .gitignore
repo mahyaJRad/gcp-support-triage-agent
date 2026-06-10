@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.ipynb_checkpoints/
+*.egg-info/
+.ruff_cache/
+.pytest_cache/
+.adk/
+/data_local/
+*.log
+

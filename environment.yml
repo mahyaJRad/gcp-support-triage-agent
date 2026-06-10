@@ -1,0 +1,18 @@
+# Conda environment for the Support-Triage Agent.
+#
+# Conda owns only the Python interpreter (pinned to 3.11 - the GCP/ADK/spaCy
+# stack does not yet publish wheels for 3.12+). Everything else is installed by
+# pip from requirements.txt, which stays the single source of truth for deps.
+#
+# Create:   conda env create -f environment.yml
+# Update:   conda env update -f environment.yml --prune
+# Activate: conda activate support-triage
+name: support-triage
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip>=24
+  - pip:
+      - -r requirements.txt
+      - -e .            # editable install so `support_triage` imports anywhere (needed by `adk web`)
