@@ -38,6 +38,15 @@ class Config:
     # Vertex / Gemini
     gemini_model: str = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
     vertex_location: str = os.environ.get("VERTEX_LOCATION", "us-central1")
+    # cost guardrail for the eval's Gemini *extractor* baseline: one Flash call per
+    # ticket, so cap it well below max_docs. Raise via GEMINI_EVAL_DOCS to score
+    # more tickets (and spend more) when you want a tighter comparison.
+    gemini_eval_docs: int = int(os.environ.get("GEMINI_EVAL_DOCS", "50"))
+    # Qualitative eval sample sizes (each summary = 1 Gemini-judge call).
+    # spot-check size (n) - larger n makes the mean faithfulness/usefulness credible
+    eval_spotcheck_docs: int = int(os.environ.get("EVAL_SPOTCHECK_DOCS", "20"))
+    # discrimination probe: how many summaries to corrupt-and-recheck (2 calls each)
+    eval_discrimination_docs: int = int(os.environ.get("EVAL_DISCRIMINATION_DOCS", "5"))
     # Firestore (optional)
     firestore_collection: str = os.environ.get("FIRESTORE_COLLECTION", "triage_sessions")
 

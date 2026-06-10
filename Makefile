@@ -1,5 +1,5 @@
 # Thin wrappers so every pipeline step is reproducible 
-.PHONY: env env-update setup ingest eda notebook build-graph extract summarize run-agent baseline eval lint test
+.PHONY: env env-update setup ingest eda notebook build-graph extract summarize run-agent baseline baseline-llm eval-labels eval lint test
 
 env:             ## create the conda env (python 3.11 + pip deps) - run ONCE
 	conda env create -f environment.yml
@@ -36,7 +36,13 @@ run-agent:       ## launch the ADK agent locally
 baseline:        ## traditional-NLP baseline: spaCy NER vs NL API (no Gemini cost)
 	python -m support_triage.eval.run --extraction-only
 
-eval:            ## evaluate extraction + summaries (incl. spaCy baseline comparison)
+baseline-llm:    ## extraction comparison incl. the Gemini Flash LLM extractor (costs Flash calls)
+	python -m support_triage.eval.run --extraction-only --with-gemini
+
+eval-labels:     ## write a reference-label template for judge calibration (no cost), then fill it in
+	python -m support_triage.eval.run --make-labels
+
+eval:            ## evaluate extraction (NL API / spaCy / Gemini) + summary spot-check + judge discrimination/calibration
 	python -m support_triage.eval.run
 
 lint:

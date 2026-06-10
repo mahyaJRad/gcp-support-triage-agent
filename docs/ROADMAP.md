@@ -6,25 +6,44 @@ production version would add and how it would be operated.
 
 ## Near-term extensions
 
-- **Graph-primary retrieval.** Build the BigQuery property graph
-  (`sql/02_create_graph.sql`), write NL API entities back as `Entity` nodes and
-  `MENTIONS` edges, and make the GQL traversal the primary path with the current
-  SQL query as fallback. Enables multi-hop queries such as "resolved tickets that
-  share tags/entities, plus the users who resolved them."
-- **Richer extraction.** Entity-level (aspect) sentiment in addition to document
-  sentiment. (A spaCy NER baseline emitting the same schema already ships for a
-  side-by-side comparison - see `make baseline`.)
+- **Graph-primary retrieval (designed, not yet built).** Today retrieval is a
+  single-hop lexical tag-overlap SQL query; the property graph is
+  *scaffolded* (DDL `sql/02_create_graph.sql`, a sample GQL traversal, and a
+  `use_graph` code path) but **`graph/build.py` is a stub and the agent never calls
+  the graph** - so nothing is built or wired today. To finish it: build the
+  node/edge tables from `tickets`+`entities`, write NL API entities back as `Entity`
+  nodes and `MENTIONS` edges, run `CREATE PROPERTY GRAPH`, and make the GQL
+  traversal the primary path with the current SQL query as automatic fallback.
+  *Why it's worth it:* a single-hop overlap does not justify a graph (SQL does it
+  well); the graph earns its place on **multi-hop** queries SQL is awkward at -
+  combined tag+entity relevance, **entity-bridge** precedents (share an entity but
+  no tag, invisible to tag overlap), and **expert routing** (ticket -> accepted
+  answer -> answerer -> their other resolved tickets). Prove it with **recall@k /
+  MRR vs the SQL baseline** rather than asserting it (ADR 0003).
 - **Cross-document synthesis.** Given several retrieved resolved tickets, produce
   one "known issue and likely fix" summary that cites every source id, with a
   prompt that refuses when evidence is weak rather than inventing a fix.
-- **Agent reasoning.** A `get_resolution` tool that fetches accepted-answer text;
-  an explicit clarify path when extracted entities are low-confidence.
+- **`get_resolution` + true resolution summaries.** Re-ingest accepted-answer text
+  (join `posts_answers` on `accepted_answer_id`), add a tool to fetch it, and
+  summarize the *resolution* rather than the question - closing today's "resolution
+  unknown" gap and unlocking the deferred **ROUGE-L vs. accepted answers** metric.
+- **Hybrid semantic retrieval.** Vertex AI embeddings + Vector Search alongside the
+  lexical/graph retrieval, ranked together, for fuzzy prose phrasing.
+- **Frontier-model routing.** Tiered model selection - Flash for bulk/simple steps,
+  a frontier model (Gemini Pro / frontier tier) for complex multi-step agent
+  reasoning turns - instead of Flash everywhere (ADR 0004).
+- **Multi-agent decomposition.** A supervisor agent over specialist sub-agents
+  (retriever, summarizer, resolver) via ADK's multi-agent API.
+- **Confidence-aware clarify / abstain.** An explicit low-confidence path that asks
+  one targeted clarifying question or abstains, driven by extraction salience and
+  retrieval score.
 - **Cross-session memory.** Persist session turns to **Firestore** (serverless,
   free tier, document model). In-session state uses ADK session state;
   Memorystore (Redis) is heavier than needed, and Agent Engine Memory Bank is the
   managed option once deployed.
-- **Evaluation.** ROUGE-L of summaries against accepted answers where present, and
-  a full precision/recall/F1 table for extraction against tags.
+- **Evaluation.** Retrieval-quality metrics (recall@k / MRR) as a CI gate once the
+  graph lands; ROUGE-L of summaries against accepted answers where present; the
+  full precision/recall/F1 table for extraction against tags (shipped).
 
 ## Productionization
 

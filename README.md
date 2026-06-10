@@ -22,8 +22,8 @@ ticket -> extract_entities (NL API) -> find_related_tickets (BigQuery) -> summar
 |------------|-------------|-----------|-----|
 | Corpus storage | BigQuery | Dataset already hosted there; serverless SQL; free query tier | [0001](docs/adr/0001-dataset-choice.md) |
 | Entities + sentiment | Cloud Natural Language API | Managed, deterministic, entity-level sentiment, free tier | [0002](docs/adr/0002-nl-api-vs-llm-extraction.md) |
-| Retrieval | BigQuery (SQL tag overlap; optional GQL property graph) | Relationship-shaped data; no extra service | [0003](docs/adr/0003-graph-vs-vector-retrieval.md) |
-| Summarization | Gemini Flash on Vertex AI | GCP-native generation, low cost, sufficient quality | [0004](docs/adr/0004-cost-and-model-selection.md) |
+| Retrieval | BigQuery SQL tag/entity overlap (property graph planned — see [ROADMAP](docs/ROADMAP.md)) | Relationship-shaped data; no extra service | [0003](docs/adr/0003-graph-vs-vector-retrieval.md) |
+| Summarization + agent reasoning | Gemini Flash on Vertex AI | GCP-native generation, low cost, sufficient quality (frontier routing planned) | [0004](docs/adr/0004-cost-and-model-selection.md) |
 | Orchestration | Agent Development Kit (ADK) | First-party, code-first tools, local dev | [0006](docs/adr/0006-adk-orchestration.md) |
 
 Diagrams and component details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -68,7 +68,9 @@ make notebook      # open notebooks/01_eda.ipynb in JupyterLab
 make extract       # NL API entity + sentiment extraction
 make summarize     # Gemini Flash summaries
 make baseline      # traditional-NLP baseline: spaCy NER vs NL API (no Gemini cost)
-make eval          # entity/tag overlap (NL API vs spaCy) + summary spot-check
+make baseline-llm  # extraction comparison incl. the Gemini Flash LLM extractor (costs Flash calls)
+make eval-labels   # write a reference-label template for judge calibration (no cost; an independent rater fills it in)
+make eval          # extraction comparison + summary spot-check + judge discrimination probe + calibration
 make run-agent     # launch the ADK agent locally (adk web)
 make test          # offline tests (no GCP credentials needed)
 ```
