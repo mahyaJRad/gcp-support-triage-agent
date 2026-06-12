@@ -8,7 +8,7 @@
 
 This prototype is a **Support-Triage Agent**: given an incoming technical support ticket, it (1) **extracts** the core issue, entities and sentiment, (2) **retrieves** historically similar *resolved* tickets, and (3) **summarizes** the likely fix into a grounded brief that **cites its sources**. When no precedent exists, it says so and recommends escalation rather than inventing an answer.
 
-The system is built **GCP-native end to end** — BigQuery (corpus + retrieval), Cloud Natural Language API (extraction), Vertex AI / Gemini Flash (summarization) — and orchestrated as modular **tools behind a Google ADK agent**. What runs today retrieves precedents with a **transparent, free, lexical tag/entity-overlap SQL query** in BigQuery. The data is deliberately modeled as a *relationship* problem so the same retrieval **generalizes to a BigQuery property graph** (GQL multi-hop traversal); that graph is **designed and scaffolded but not yet built or wired** — it is documented as a near-term improvement (§9, ADR 0003), not claimed as working.
+The system is built **GCP-native end to end** — BigQuery (corpus + retrieval), Cloud Natural Language API (extraction), Vertex AI / Gemini Flash (summarization) — and orchestrated as modular **tools behind a Google ADK agent**. What runs today retrieves precedents with a **transparent, free, lexical tag-overlap SQL query** in BigQuery. The data is deliberately modeled as a *relationship* problem so the same retrieval **generalizes to a BigQuery property graph** (GQL multi-hop traversal); that graph is **designed and scaffolded but not yet built or wired** — it is documented as a near-term improvement (§9, ADR 0003), not claimed as working.
 
 The differentiators that *are* delivered: a **rigorous, honest evaluation** (a three-way extraction comparison, a hallucination-discrimination probe, and judge-vs-human calibration — §5), and a **grounded, source-citing, abstaining agent** that refuses to fabricate fixes. Every artifact (sampled corpus, entities, summaries) is **regenerable from a single `make` target or slash command**, and every component choice is recorded in an Architecture Decision Record (ADR).
 
@@ -133,7 +133,7 @@ The agent is a single **ADK root agent** (`gemini-2.5-flash` — same cost-drive
 | Tool | Backing service | Contract |
 |------|-----------------|----------|
 | `extract_entities(ticket_text)` | Cloud NL API | `{entities:[{name,type,salience,…}], sentiment}` |
-| `find_related_tickets(ticket_text, top_k)` | BigQuery (SQL tag/entity overlap) | `[{id, title, shared_tags, score, url}]` or `[]` |
+| `find_related_tickets(ticket_text, top_k)` | BigQuery (SQL tag overlap) | `[{id, title, shared_tags, score, url}]` or `[]` |
 | `summarize_ticket(ticket_text)` | Vertex AI / Gemini Flash | one grounded paragraph |
 | *(Future — §9)* `get_resolution` / cross-doc synthesis | BigQuery + Gemini | "known issue & likely fix" citing multiple ids |
 
@@ -209,7 +209,7 @@ flowchart TB
     ROOT --> USER
 ```
 
-**Retrieval today, and the property-graph generalization (planned, §9).** What runs is a BigQuery **SQL** query that ranks resolved tickets by tag/entity-term overlap with the incoming text — transparent, free, and unit-tested. The relationship it expresses — *"resolved questions that share tags/entities with this ticket, and the users who resolved them"* — is naturally a **graph**. A **GQL property graph** (`CREATE PROPERTY GRAPH` + `GRAPH_TABLE/MATCH`) is the multi-hop generalization; its DDL and a sample traversal are **scaffolded in `sql/` but the graph is not yet built and the agent does not call it** (`graph/build.py` is a stub; ADR 0003). It is the leading near-term improvement (§9). Proposed graph schema:
+**Retrieval today, and the property-graph generalization (planned, §9).** What runs is a BigQuery **SQL** query that ranks resolved tickets by tag-term overlap with the incoming text — transparent, free, and unit-tested. The relationship it expresses — *"resolved questions that share tags/entities with this ticket, and the users who resolved them"* — is naturally a **graph**. A **GQL property graph** (`CREATE PROPERTY GRAPH` + `GRAPH_TABLE/MATCH`) is the multi-hop generalization; its DDL and a sample traversal are **scaffolded in `sql/` but the graph is not yet built and the agent does not call it** (`graph/build.py` is a stub; ADR 0003). It is the leading near-term improvement (§9). Proposed graph schema:
 
 ```mermaid
 erDiagram
@@ -234,10 +234,10 @@ erDiagram
 |-----------|-------------|-----------|-----|
 | Corpus storage | **BigQuery** | Dataset already hosted there; serverless; free tier | 0001 |
 | Entities + sentiment | **Cloud Natural Language API** | Managed, deterministic, free units, snapshot-testable | 0002 |
-| Retrieval | **BigQuery SQL tag/entity overlap** *(property graph planned, §9)* | Relationship traversal with no new service to operate | 0003 |
+| Retrieval | **BigQuery SQL tag overlap** *(property graph planned, §9)* | Relationship traversal with no new service to operate | 0003 |
 | Summarization + agent reasoning | **Vertex AI — Gemini Flash** | GCP-native, low cost, adequate quality (frontier routing planned) | 0004 |
-| Orchestration | **Google ADK** | Code-first tools, multi-step reasoning, local dev/demo | 0006 |
-| Cross-session memory | **Firestore** *(roadmap)* | Serverless document store keyed by session | 0006 |
+| Orchestration | **Google ADK** | Code-first tools, multi-step reasoning, local dev/demo | 0005 |
+| Cross-session memory | **Firestore** *(roadmap)* | Serverless document store keyed by session | 0005 |
 
 ---
 
@@ -248,10 +248,10 @@ erDiagram
 **Key trade-offs (each recorded as an ADR):**
 
 1. **NL API over LLM extraction (0002).** Chose determinism, zero cost, and testability over an LLM's flexibility. Trade-off: fixed entity taxonomy. *v2's dropped `salience` field* was the surprise — handled with a mention-frequency proxy, then resolved by moving to v1 entity-sentiment in Phase 2. This is now **empirically backed**: a Gemini Flash extractor, scored head-to-head (§5.1), does not beat the managed API on the corpus despite costing a model call per document.
-2. **SQL retrieval today; graph deferred (0003).** Retrieval runs as a transparent, free **lexical tag/entity-overlap SQL** query. The property graph is the elegant multi-hop generalization and is **scaffolded (DDL + GQL traversal written) but not built or wired** — `graph/build.py` is a stub and the agent uses the SQL path. We kept the design seam without claiming a Pre-GA feature works (§9).
+2. **SQL retrieval today; graph deferred (0003).** Retrieval runs as a transparent, free **lexical tag-overlap SQL** query. The property graph is the elegant multi-hop generalization and is **scaffolded (DDL + GQL traversal written) but not built or wired** — `graph/build.py` is a stub and the agent uses the SQL path. We kept the design seam without claiming a Pre-GA feature works (§9).
 3. **Text-overlap retrieval, not vectors (current).** `find_related_by_text` ranks resolved tickets by tag-term overlap with the incoming free text. It's transparent and free but **lexical** — prose phrasing retrieves weakly versus tag-like phrasing. Hybrid semantic retrieval (Vertex embeddings + Vector Search) is a documented upgrade (§9).
 4. **Gemini Flash, never Pro (0004).** Quality-for-cost for summarization *and* the agent's reasoning; the **thinking-token output-budget** behavior was the main engineering gotcha (truncated summaries *and* a truncated eval-judge JSON), solved with generous caps, sentence-trimming, and tolerant score-parsing. Frontier-model routing for complex agent turns is the production plan (§9).
-5. **Local ADK, not Agent Engine (0006).** Develop and demo locally for a 48-hour scope; managed deployment is a productionization narrative, not prototype work.
+5. **Local ADK, not Agent Engine (0005).** Develop and demo locally for a 48-hour scope; managed deployment is a productionization narrative, not prototype work.
 
 **Honest limitations.** Lexical retrieval; the property graph is scaffolded but not wired; some self-judge leniency in the qualitative eval (mitigated by the discrimination probe and human calibration); small, cost-bounded sample; summaries describe issues rather than synthesizing resolutions across precedents (the `summarize_cluster` / `get_resolution` tools are scaffolded but not yet wired).
 
@@ -263,7 +263,7 @@ The prototype is intentionally bounded; these are the highest-value extensions, 
 
 ### 9.1 Property-graph multi-hop retrieval (designed, not built) — the leading improvement
 
-**Current state.** Retrieval is a single-hop lexical tag/entity-overlap SQL query. The graph DDL (`sql/02_create_graph.sql`), a sample GQL traversal (`sql/03_graph_traversals.sql`), and a `use_graph` code path (`graph/queries.py`) exist, but `graph/build.py` is a stub and the agent never calls the graph — so **no graph is built and nothing uses it today**.
+**Current state.** Retrieval is a single-hop lexical tag-overlap SQL query. The graph DDL (`sql/02_create_graph.sql`), a sample GQL traversal (`sql/03_graph_traversals.sql`), and a `use_graph` code path (`graph/queries.py`) exist, but `graph/build.py` is a stub and the agent never calls the graph — so **no graph is built and nothing uses it today**.
 
 **Why it adds value.** A single-hop tag overlap does *not* justify a graph — SQL does it well. A property graph earns its place only on **multi-hop** questions that are awkward as nested SQL self-joins:
 - **(i) Combined tag + entity relevance** — rank precedents by shared tags *and* shared extracted entities in one traversal, weighting the more specific entity matches.
@@ -315,7 +315,7 @@ Everything that runs today is regenerable; no manual console clicking. Configura
 | Evaluate | `make eval` | metrics + `eval_results.md` |
 | *(scaffolded, not yet functional)* Build graph | `make build-graph` | property graph — see §9.1; `graph/build.py` is a stub |
 
-**ADR index:** 0001 dataset choice · 0002 NL API vs LLM extraction · 0003 graph vs vector retrieval · 0004 cost & model selection · 0006 ADK orchestration.
+**ADR index:** 0001 dataset choice · 0002 NL API vs LLM extraction · 0003 graph vs vector retrieval · 0004 cost & model selection · 0005 ADK orchestration.
 
 **Stack:** Python ≥3.11, ADK 2.2.0, `google-cloud-bigquery`, `google-cloud-language`, `vertexai`; `ruff` for lint/format; type hints + docstrings throughout.
 

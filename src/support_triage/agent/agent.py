@@ -1,6 +1,6 @@
 """The Support-Triage ADK agent. Run locally: `adk web src/support_triage/agent`.
 
-Orchestration rationale: docs/adr/0006-adk-orchestration.md.
+Orchestration rationale: docs/adr/0005-adk-orchestration.md.
 """
 
 from __future__ import annotations

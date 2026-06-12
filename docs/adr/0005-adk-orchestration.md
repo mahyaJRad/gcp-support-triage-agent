@@ -1,4 +1,4 @@
-# ADR 0006 - Agent orchestration with ADK, run locally
+# ADR 0005 - Agent orchestration with ADK, run locally
 
 ## Status
 Accepted

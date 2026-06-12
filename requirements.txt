@@ -16,10 +16,6 @@ spacy>=3.7                            # optional traditional-NLP baseline
 beautifulsoup4>=4.12                  # strip HTML from SO post bodies
 lxml>=5.3
 
-# --- Evaluation ---
-rouge-score>=0.1.2                    # summary overlap metric
-scikit-learn>=1.5                     # precision/recall vs tag gold standard
-
 # --- Notebooks / EDA ---
 matplotlib>=3.9                       # EDA plots (notebooks/01_eda.ipynb, make eda)
 jupyterlab>=4.2                       # open / run the EDA notebook locally

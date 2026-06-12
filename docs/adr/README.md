@@ -10,4 +10,4 @@ outcome.
 | 0002 | Extraction: Natural Language API (not LLM) for entities/sentiment | Accepted |
 | 0003 | Retrieval: BigQuery SQL now, GQL property graph later | Accepted |
 | 0004 | Cost strategy and Gemini Flash model selection | Accepted |
-| 0006 | Orchestration: ADK, run locally | Accepted |
+| 0005 | Orchestration: ADK, run locally | Accepted |

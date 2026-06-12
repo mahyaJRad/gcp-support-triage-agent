@@ -22,9 +22,9 @@ ticket -> extract_entities (NL API) -> find_related_tickets (BigQuery) -> summar
 |------------|-------------|-----------|-----|
 | Corpus storage | BigQuery | Dataset already hosted there; serverless SQL; free query tier | [0001](docs/adr/0001-dataset-choice.md) |
 | Entities + sentiment | Cloud Natural Language API | Managed, deterministic, entity-level sentiment, free tier | [0002](docs/adr/0002-nl-api-vs-llm-extraction.md) |
-| Retrieval | BigQuery SQL tag/entity overlap (property graph planned — see [ROADMAP](docs/ROADMAP.md)) | Relationship-shaped data; no extra service | [0003](docs/adr/0003-graph-vs-vector-retrieval.md) |
+| Retrieval | BigQuery SQL tag overlap (property graph planned — see [ROADMAP](docs/ROADMAP.md)) | Relationship-shaped data; no extra service | [0003](docs/adr/0003-graph-vs-vector-retrieval.md) |
 | Summarization + agent reasoning | Gemini Flash on Vertex AI | GCP-native generation, low cost, sufficient quality (frontier routing planned) | [0004](docs/adr/0004-cost-and-model-selection.md) |
-| Orchestration | Agent Development Kit (ADK) | First-party, code-first tools, local dev | [0006](docs/adr/0006-adk-orchestration.md) |
+| Orchestration | Agent Development Kit (ADK) | First-party, code-first tools, local dev | [0005](docs/adr/0005-adk-orchestration.md) |
 
 Diagrams and component details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 Design decisions: [docs/adr/](docs/adr/). Roadmap and productionization:
